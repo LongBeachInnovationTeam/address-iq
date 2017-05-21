@@ -43,7 +43,7 @@ If using [Aptible](https://www.aptible.com), here's the command to run to activa
 Development
 ------------
 
-Developers can follow the instructions on the [AddressIQ GitHub wiki](LongBeachInnovationTeam/address-iq/wiki/How-Everything-Works) to create a local development environment. 
+Developers can follow the instructions on the [AddressIQ GitHub wiki](/wiki/How-Everything-Works) to create a local development environment. 
 
 Testing
 ------
