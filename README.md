@@ -40,6 +40,11 @@ To keep these set regularly, you might want to either create a shell script or u
 
 If using [Aptible](https://www.aptible.com), here's the command to run to activate maintenance mode: `aptible config:set MAINTENANCE_MODE=on`
 
+Development
+------------
+
+Developers can follow the instructions on the [AddressIQ GitHub wiki](LongBeachInnovationTeam/address-iq/wiki/How-Everything-Works) to create a local development environment. 
+
 Testing
 ------
 To view on your local machine:
