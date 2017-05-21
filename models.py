@@ -5,8 +5,49 @@ from app import db
 
 class FireIncident(db.Model):
     __bind_key__ = 'lbc_data'
+    __tablename__ = 'fire_incidents'
 
+    cad_call_number = db.Column(db.Integer, primary_key=True)
+    incident_number = db.Column(db.Integer)
+    alarm_datetime = db.Column(db.DateTime(timezone=True))
+
+    district = db.Column(db.String(6))
+    x_coordinate = db.Column(db.String(7))
+    y_coordinate = db.Column(db.String(7))
+
+    street_number = db.Column(db.String(10))
+    street_prefix = db.Column(db.String(30))
+    street_name = db.Column(db.String(200))
+    street_type = db.Column(db.String(20))
+    street_suffix = db.Column(db.String(20))
+
+    cross_street_prefix = db.Column(db.String(30))
+    cross_street_name = db.Column(db.String(200))
+    cross_street_type = db.Column(db.String(20))
+    cross_street_suffix = db.Column(db.String(20))
+
+    incident_address = db.Column(db.String(255))
+    apartment_number = db.Column(db.String(20))
+    incident_cross_street = db.Column(db.String(255))
+    postal_code = db.Column(db.String(10))
+
+    common_name = db.Column(db.String(200))
+
+    initial_cad_call_type = db.Column(db.String(20))
+    initial_cad_call_type_description = db.Column(db.String(100))
+
+    final_cad_call_type = db.Column(db.String(20))
+    final_cad_call_type_description = db.Column(db.String(100))
+
+    actual_nfirs_incident_type = db.Column(db.String(20))
+    actual_nfirs_incident_type_description = db.Column(db.String(100))
+
+    intersection = db.Column(db.String(6))
+
+class StandardizedFireIncident(db.Model):
+    __bind_key__ = 'lbc_data'
     __tablename__ = 'standardized_fire_incidents'
+
     cad_call_number = db.Column(db.Integer, primary_key=True)
     incident_number = db.Column(db.Integer)
     alarm_datetime = db.Column(db.DateTime(timezone=True))
@@ -44,7 +85,6 @@ class FireIncident(db.Model):
 
     intersection = db.Column(db.String(6))
     standardized_address = db.Column(db.String)
-
 
 class FireDispatch(db.Model):
     __bind_key__ = 'lbc_data'
@@ -91,6 +131,32 @@ class BusinessLicense(db.Model):
 
 
 class PoliceIncident(db.Model):
+    __bind_key__ = 'lbc_data'
+    __tablename__ = 'police_incidents'
+
+    cad_call_number = db.Column(db.String(25), primary_key=True)
+    incident_number = db.Column(db.String(25))
+
+    call_datetime = db.Column(db.DateTime(timezone=True))
+
+    x_coordinate = db.Column(db.String(7))
+    y_coordinate = db.Column(db.String(7))
+
+    incident_address = db.Column(db.String(255))
+
+    street_number = db.Column(db.String(10))
+    street_prefix = db.Column(db.String(30))
+    street_name = db.Column(db.String(200))
+    street_type = db.Column(db.String(20))
+    street_suffix = db.Column(db.String(20))
+
+    initial_cad_call_type = db.Column(db.String(20))
+    initial_cad_call_type_description = db.Column(db.String(100))
+
+    final_cad_call_type = db.Column(db.String(20))
+    final_cad_call_type_description = db.Column(db.String(100))
+
+class StandardizedPoliceIncident(db.Model):
     __bind_key__ = 'lbc_data'
     __tablename__ = 'standardized_police_incidents'
 
@@ -144,8 +210,8 @@ class AddressSummary(db.Model):
     police_incidents_last365 = db.Column(db.Integer)
     police_incidents_prev365 = db.Column(db.Integer)
 
-    business_count = db.Column(db.Integer, default=0)        
-    business_names = db.Column(db.Text, default="")        
+    business_count = db.Column(db.Integer, default=0)
+    business_names = db.Column(db.Text, default="")
     business_types = db.Column(db.Text, default="")
 
     active = db.Column(db.Boolean)
@@ -162,7 +228,7 @@ class AddressSummary(db.Model):
             }
         }
 
-        
+
 class AuditLogEntry(db.Model):
     __tablename__ = 'audit_log'
 

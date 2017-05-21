@@ -8,14 +8,14 @@ CREATE OR REPLACE FUNCTION clean_address(address TEXT) RETURNS TEXT AS $$
     , ' HY$', ' HWY');  -- format HY as HWY
 $$ LANGUAGE 'sql';
 
-DROP MATERIALIZED VIEW standardized_fire_incidents;
+DROP MATERIALIZED VIEW IF EXISTS standardized_fire_incidents;
 CREATE MATERIALIZED VIEW standardized_fire_incidents AS
     SELECT *, clean_address(concat_ws(' ',  street_number::varchar, street_prefix::varchar, street_name::varchar, street_type::varchar, street_suffix::varchar)) AS standardized_address FROM fire_incidents;
 
 CREATE INDEX ON standardized_fire_incidents (standardized_address);
 CREATE INDEX ON standardized_fire_incidents (alarm_datetime);
 
-DROP MATERIALIZED VIEW standardized_police_incidents;
+DROP MATERIALIZED VIEW IF EXISTS standardized_police_incidents;
 CREATE MATERIALIZED VIEW standardized_police_incidents AS
     SELECT *, clean_address(concat_ws(' ',  street_number::varchar, street_prefix::varchar, street_name::varchar, street_type::varchar, street_suffix::varchar)) AS standardized_address FROM police_incidents;
 
