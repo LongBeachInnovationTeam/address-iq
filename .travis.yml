@@ -18,4 +18,4 @@ before_script:
 - alembic upgrade head
 - python app.py &
 addons:
-  sauce_connect: true
+  sauce_connect: false
