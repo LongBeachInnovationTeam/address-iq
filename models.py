@@ -1,7 +1,7 @@
 import datetime
 
 from app import db
-
+from flask.ext.security import UserMixin, RoleMixin
 
 class FireIncident(db.Model):
     __bind_key__ = 'lbc_data'
@@ -241,6 +241,17 @@ class AuditLogEntry(db.Model):
 
     user = db.relationship('User', primaryjoin='AuditLogEntry.user_id==User.id')
 
+roles_users = db.Table('roles_users',
+        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+
+class Role(db.Model, RoleMixin):
+    __tablename__ = 'roles'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
+
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -249,13 +260,18 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True)
     date_created = db.Column(db.DateTime(timezone=True), default=db.func.now())
     can_view_fire_data = db.Column(db.Boolean, default=False)
+    # Flask-Security related attributes
+    password = db.Column(db.String(255))
+    active = db.Column(db.Boolean(), default=False)
+    confirmed_at = db.Column(db.DateTime(timezone=True), default=db.func.now())
+    roles = db.relationship('Role', secondary=roles_users,
+                            backref=db.backref('users', lazy='dynamic'))
 
     def is_authenticated(self):
         return True
 
     def is_active(self):
-        # @todo: crossreference with Google Doc or LDAP.
-        return True
+        return self.active
 
     def is_anonymous(self):
         return False
