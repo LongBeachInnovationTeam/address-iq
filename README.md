@@ -1,6 +1,8 @@
 AddressIQ
 =====================
 
+[![Build Status](https://travis-ci.org/LongBeachInnovationTeam/address-iq.svg?branch=master)](https://travis-ci.org/LongBeachInnovationTeam/address-iq)
+
 AddressIQ is a web application that analyzes city data to help identify addresses with a high number of 911 calls and support finding cost-effective ways to provide those addresses with better care and resources.
 
 View the [AddressIQ User Manual](https://docs.google.com/a/codeforamerica.org/presentation/d/1gSuvhTcUj2y-2w-lBtxw6iCQXXlI2RY5x4C461OhgMs/edit#slide=id.p) for a walkthrough of how the app works and what it looks like.
