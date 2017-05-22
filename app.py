@@ -11,7 +11,7 @@ from flask import Flask, render_template, abort, request, Response, session, red
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
 from flask.ext.seasurf import SeaSurf
-from flask_sslify import SSLify 
+from flask_sslify import SSLify
 import flask.ext.assets
 
 from functools import wraps
@@ -98,11 +98,11 @@ def audit_log(f):
     return decorated_function
 
 def fetch_incidents_at_address(address):
-    fire_query = db.session.query(models.FireIncident)
-    fire_query = fire_query.filter(models.FireIncident.standardized_address == address.upper())
+    fire_query = db.session.query(models.StandardizedFireIncident)
+    fire_query = fire_query.filter(models.StandardizedFireIncident.standardized_address == address.upper())
 
-    police_query = db.session.query(models.PoliceIncident)
-    police_query = police_query.filter(models.PoliceIncident.standardized_address == address.upper())
+    police_query = db.session.query(models.StandardizedPoliceIncident)
+    police_query = police_query.filter(models.StandardizedPoliceIncident.standardized_address == address.upper())
 
     business_query = db.session.query(models.BusinessLicense)
     business_query = business_query.filter(models.BusinessLicense.business_address == address.upper())
@@ -137,7 +137,7 @@ def count_incidents_by_timeframes(incidents, timeframes):
         for incident in incidents[incident_type]:
             incident_date = getattr(incident, date_field).date()
             for timeframe_info in timeframes_info:
-                if incident_date > timeframe_info['start_date']:
+                if  incident_date > timeframe_info['start_date']:
                     counts[incident_type][timeframe_info['days']] = \
                         counts[incident_type][timeframe_info['days']] + 1
 
@@ -227,7 +227,7 @@ def fetch_authorization_row(email):
     PRIVATE_KEY = app.config['GOOGLE_PRIVATE_KEY']
 
     SCOPE = "https://spreadsheets.google.com/feeds/"
-    
+
     credentials = SignedJwtAssertionCredentials(CLIENT_EMAIL, PRIVATE_KEY, SCOPE)
     token = OAuth2TokenFromCredentials(credentials)
     client = SpreadsheetsClient()
@@ -436,7 +436,7 @@ def post_comment(address):
 @app.route("/address/<address>/activate", methods=["POST"])
 @login_required
 def activate(address):
-    try: 
+    try:
         activate_address(address.upper())
         db.session.commit()
         return 'activated'

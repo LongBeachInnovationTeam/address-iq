@@ -14,7 +14,7 @@ import models
 
 from count_calls_for_service import count_calls
 
-from factories import FireIncidentFactory, PoliceIncidentFactory, BusinessLicenseFactory, UserFactory
+from factories import FireIncidentFactory, StandardizedFireIncidentFactory, PoliceIncidentFactory, StandardizedPoliceIncidentFactory, BusinessLicenseFactory, UserFactory
 
 from flask.ext.login import login_user
 
@@ -90,33 +90,33 @@ class LoginTestCase(unittest.TestCase):
         response = self.app.get('/browse')
         self.assertTrue('user@example.com' in response.data)
 
-    @mock.patch('app.SpreadsheetsClient', setup_google_mock(email="notexample@example.com"))    
+    @mock.patch('app.SpreadsheetsClient', setup_google_mock(email="notexample@example.com"))
     def test_login_fails_when_not_in_spreadsheet(self):
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
 
         with HTTMock(persona_verify):
             response = self.app.post('/log-in', data={'assertion': 'sampletoken'})
-        
+
         self.assertEquals(response.status_code, 403)
 
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
 
-    @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view='N'))    
+    @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view='N'))
     def test_login_fails_when_not_allowed_to_view(self):
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
 
         with HTTMock(persona_verify):
             response = self.app.post('/log-in', data={'assertion': 'sampletoken'})
-        
+
         self.assertEquals(response.status_code, 403)
 
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
 
-    @mock.patch('app.SpreadsheetsClient', setup_google_mock())    
+    @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_login_successfully_pulls_in_name(self):
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
@@ -128,7 +128,7 @@ class LoginTestCase(unittest.TestCase):
         response = self.app.get('/browse')
         self.assertTrue('Joe Fireworks' in response.data)
 
-    @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view_fire='Y'))    
+    @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view_fire='Y'))
     def test_login_successfully_pulls_in_fire_viewable_true(self):
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
@@ -140,7 +140,7 @@ class LoginTestCase(unittest.TestCase):
         user = db.session.query(models.User).filter(models.User.email=='user@example.com').first()
         assert user.can_view_fire_data == True
 
-    @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view_fire='N'))    
+    @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view_fire='N'))
     def test_login_successfully_pulls_in_fire_viewable_false(self):
         response = self.app.get('/')
         self.assertFalse('user@example.com' in response.data)
@@ -191,9 +191,9 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert len(incidents['businesses']) == 0
 
     def test_fetch_incident_at_address_returns_correct_number_of_items(self):
-        [FireIncidentFactory(standardized_address="123 MAIN ST")
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST")
          for i in range(5)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST")
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST")
          for i in range(3)]
         [BusinessLicenseFactory(business_address="123 MAIN ST")
          for i in range(1)]
@@ -206,9 +206,9 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert len(incidents['businesses']) == 1
 
     def test_fetch_incident_at_address_works_if_lowercase_supplied(self):
-        [FireIncidentFactory(standardized_address="123 MAIN ST")
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST")
          for i in range(0, 5)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST")
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST")
          for i in range(0, 3)]
         [BusinessLicenseFactory(business_address="123 MAIN ST")
          for i in range(0, 1)]
@@ -221,29 +221,29 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert len(incidents['businesses']) == 1
 
     def test_count_incidents_returns_proper_counts_for_default_days(self):
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(5))
          for i in range(0, 5)]
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(20))
          for i in range(0, 8)]
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(40))
          for i in range(0, 7)]
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(200))
          for i in range(0, 10)]
 
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(5))
          for i in range(0, 3)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(20))
          for i in range(0, 8)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(40))
          for i in range(0, 9)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(200))
          for i in range(0, 6)]
 
@@ -277,36 +277,36 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert counts['police'][365] == 0
 
     def test_top_incident_reasons_by_timeframes_returns_proper_counts(self):
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(5),
                              actual_nfirs_incident_type_description="Broken Nose")
          for i in range(0, 5)]
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(20),
                              actual_nfirs_incident_type_description="Stubbed Toe")
          for i in range(0, 8)]
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(40),
                              actual_nfirs_incident_type_description="Myocardial Infarction")
          for i in range(0, 7)]
-        [FireIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(200),
                              actual_nfirs_incident_type_description="Lung Fell Off")
          for i in range(0, 10)]
 
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(5),
                                final_cad_call_type_description="Stepped on a Crack")
          for i in range(0, 3)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(20),
                                final_cad_call_type_description="Whipped It")
          for i in range(0, 8)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(40),
                                final_cad_call_type_description="Safety Dance")
          for i in range(0, 9)]
-        [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                                call_datetime=get_date_days_ago(200),
                                final_cad_call_type_description="Runnin' With The Devil")
          for i in range(0, 6)]
@@ -357,7 +357,7 @@ class AddressUtilityTestCase(unittest.TestCase):
         self.assertEquals(expected_top_reasons, actual_top_reasons)
 
     def test_address_page_with_incidents_returns_200(self):
-        [FireIncidentFactory(standardized_address="123 MAIN ST")
+        [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -370,7 +370,7 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert "Page not found" in rv.data
 
     def test_address_page_shows_correct_address(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
         db.session.flush()
 
@@ -378,7 +378,7 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert '456 Lala Ln' in rv.data
 
     def test_address_page_shows_correct_business_info_with_no_businesses(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
         db.session.flush()
 
@@ -386,7 +386,7 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert 'No business is registered' in rv.data
 
     def test_address_page_shows_correct_business_info_with_one_business(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         [BusinessLicenseFactory(business_address="456 LALA LN",
@@ -399,7 +399,7 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert "The Pub" in rv.data
 
     def test_address_page_shows_correct_business_info_with_multiple_businesses(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         BusinessLicenseFactory(business_address="456 LALA LN",
@@ -415,7 +415,7 @@ class AddressUtilityTestCase(unittest.TestCase):
         assert "The Pub, Mowers R Us" in rv.data
 
     def test_no_comment_msg_shows_on_address_with_none(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -426,7 +426,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_posting_a_comment_loads_a_comment_into_database(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -444,7 +444,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_posting_a_comment_shows_it_on_the_page(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -462,7 +462,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_posting_two_comments_shows_the_most_recent_last(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -506,7 +506,7 @@ class AddressUtilityTestCase(unittest.TestCase):
     def test_viewing_an_address_creates_an_audit_log(self):
         app.config['AUDIT_DISABLED'] = False
 
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -531,7 +531,7 @@ class AddressUtilityTestCase(unittest.TestCase):
     def test_posting_a_comment_creates_an_audit_log(self):
         app.config['AUDIT_DISABLED'] = False
 
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -556,7 +556,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock(can_view_fire='N'))
     def test_viewing_an_address_does_not_show_fire_data_if_not_allowed(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN", alarm_datetime=get_date_days_ago(5),
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN", alarm_datetime=get_date_days_ago(5),
                              actual_nfirs_incident_type_description="Broken Nose")
          for i in range(0, 5)]
 
@@ -570,7 +570,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_activation_endpoint_activates_address(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -585,7 +585,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_deactivation_endpoint_deactivates_address(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -601,7 +601,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_activating_address_adds_to_action_station(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -617,7 +617,7 @@ class AddressUtilityTestCase(unittest.TestCase):
 
     @mock.patch('app.SpreadsheetsClient', setup_google_mock())
     def test_deactivating_address_adds_to_action_station(self):
-        [FireIncidentFactory(standardized_address="456 LALA LN")
+        [StandardizedFireIncidentFactory(standardized_address="456 LALA LN")
          for i in range(0, 5)]
 
         db.session.flush()
@@ -650,7 +650,7 @@ class CountCallsTestCase(unittest.TestCase):
         def get_date_days_ago(days):
             return datetime.datetime.now(pytz.utc) - datetime.timedelta(days=days)
 
-        incidents = [FireIncidentFactory(standardized_address="123 MAIN ST",
+        incidents = [StandardizedFireIncidentFactory(standardized_address="123 MAIN ST",
                              alarm_datetime=get_date_days_ago(5))
          for i in range(0, 5)]
 
@@ -669,7 +669,7 @@ class CountCallsTestCase(unittest.TestCase):
         def get_date_days_ago(days):
             return datetime.datetime.now(pytz.utc) - datetime.timedelta(days=days)
 
-        incidents = [PoliceIncidentFactory(standardized_address="123 MAIN ST",
+        incidents = [StandardizedPoliceIncidentFactory(standardized_address="123 MAIN ST",
                              call_datetime=get_date_days_ago(5))
          for i in range(0, 5)]
 

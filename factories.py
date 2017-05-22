@@ -16,6 +16,14 @@ class FireIncidentFactory(factory.alchemy.SQLAlchemyModelFactory):
     alarm_datetime = factory.fuzzy.FuzzyDateTime(
         datetime.datetime(2013, 1, 1, tzinfo=pytz.utc))
 
+class StandardizedFireIncidentFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.StandardizedFireIncident
+        sqlalchemy_session = db.session
+
+    cad_call_number = factory.Sequence(lambda n: n)
+    alarm_datetime = factory.fuzzy.FuzzyDateTime(
+        datetime.datetime(2013, 1, 1, tzinfo=pytz.utc))
 
 class PoliceIncidentFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
@@ -24,6 +32,12 @@ class PoliceIncidentFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     cad_call_number = factory.Sequence(lambda n: "L%d" % n)
 
+class StandardizedPoliceIncidentFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.StandardizedPoliceIncident
+        sqlalchemy_session = db.session
+
+    cad_call_number = factory.Sequence(lambda n: "L%d" % n)
 
 class BusinessLicenseFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
@@ -39,4 +53,4 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     email = factory.fuzzy.FuzzyText(suffix='@example.org')
     name = factory.fuzzy.FuzzyText()
-    
+

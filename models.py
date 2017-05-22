@@ -84,6 +84,7 @@ class StandardizedFireIncident(db.Model):
     actual_nfirs_incident_type_description = db.Column(db.String(100))
 
     intersection = db.Column(db.String(6))
+
     standardized_address = db.Column(db.String)
 
 class FireDispatch(db.Model):
