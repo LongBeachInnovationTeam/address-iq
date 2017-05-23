@@ -5,7 +5,7 @@ import datetime
 import pytz
 import models
 
-from app import app, db
+from extensions import app, db
 
 class FireIncidentFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
