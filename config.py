@@ -19,6 +19,12 @@ class Config(object):
     GOOGLE_CLIENT_EMAIL = os.environ.get('GOOGLE_CLIENT_EMAIL', '')
     GOOGLE_SPREADSHEET_ID = os.environ.get('GOOGLE_SPREADSHEET_ID', '')
 
+    # Flask-Security
+    SECURITY_PASSWORD_HASH = 'pbkdf2_sha512'
+    SECURITY_CONFIRMABLE = True
+    SECURITY_TRACKABLE = True
+    SECURITY_PASSWORD_SALT = 'something_super_secret_change_in_production'
+
 class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_BINDS = {
