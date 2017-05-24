@@ -8,8 +8,6 @@
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700' rel='stylesheet' type='text/css'>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge"><!-- suppress IE compatibility mode so Persona doesn't break -->
-    <script src="https://login.persona.org/include.js" type="text/javascript"></script>
     <!-- Pulled from http://code.google.com/p/html5shiv/ -->
     <!--[if lt IE 9]>
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -37,19 +35,20 @@
             </ul>
           </div>
           <div id="user-nav">
-            {% if current_user.is_authenticated() %}
+            {% if current_user.is_authenticated %}
               <div class="user-pic">
               </div>
+              <div>Logged in as</div>
               <div class="username">
                 {{ current_user.name }}
               </div>
             {% endif %}
             <div class="signon">
               <form>
-                {% if current_user.is_authenticated() %}
-                  <a href="#" id="logout">Log out</a>
+                {% if current_user.is_authenticated %}
+                  <!-- TO-DO: Add logout link -->
                 {% else %}
-                  <a href="#" id="login">Log in</a>
+                  <a href="{{ url_for('browse') }}" id="login">Log in</a>
                 {% endif %}
               </form>
             </div>
@@ -80,17 +79,5 @@
       </footer>
       <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
       <script src="/static/main.js"></script>
-
-  <script type="text/javascript">
-    // From https://github.com/codeforamerica/bizarro-cms/blob/0d2e3cea116e054eb1e2ebbd2787175fa6c09923/bizarro/templates/index.html#L73
-    var loginLink = document.getElementById('login');
-    if (loginLink) {
-      loginLink.onclick = function() { navigator.id.request(); return false; }    }
-    var logoutLink = document.getElementById('logout');
-    if (logoutLink) {
-      logoutLink.onclick = function() { navigator.id.logout(); return false; };
-    }
-  </script>
-
   </body>
 </html>

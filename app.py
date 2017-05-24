@@ -9,7 +9,9 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, render_template, abort, request, Response, session, redirect, url_for, make_response
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
+from flask.ext.security import Security, SQLAlchemyUserDatastore, \
+    login_user, logout_user, current_user, login_required
+from flask_security import auth_token_required, http_auth_required
 from flask.ext.seasurf import SeaSurf
 from flask_sslify import SSLify
 import flask.ext.assets
@@ -22,7 +24,7 @@ from gdata.spreadsheets.client import SpreadsheetsClient
 from oauth2client.client import SignedJwtAssertionCredentials
 from gdata.gauth import OAuth2TokenFromCredentials
 
-app = Flask(__name__)
+from extensions import app, db, login_manager
 
 try:
     import clb_config
@@ -31,7 +33,6 @@ except:
     app.config.from_object(os.environ['APP_SETTINGS'])
 
 app.permanent_session_lifetime = timedelta(minutes=15)
-db = SQLAlchemy(app)
 
 meta = db.MetaData()
 meta.bind = db.engine
@@ -43,14 +44,30 @@ csrf = SeaSurf(app)
 
 import models
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login_page"
+# Setup Flask-Security
+user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
+security = Security(app, user_datastore)
 
 assets = flask.ext.assets.Environment()
 assets.init_app(app)
 
 sslify = SSLify(app)
+
+# Create a user to test with
+@app.before_first_request
+def create_user(name='Alex Chavez', email='Alex.Chavez@longbeach.gov', password='hunter2'):
+
+    # Check whether a record already exists for this user.
+    db.create_all()
+    user = models.User.query.filter(models.User.email == email).first()
+    if user:
+        return
+
+    # If no record exists, create the user.
+    db.create_all()
+    user_datastore.create_user(name=name, email=email, password=password, date_created=datetime.datetime.now(pytz.utc))
+    db.session.add(user)
+    db.session.commit()
 
 @app.before_request
 def func():
@@ -60,18 +77,6 @@ def func():
 
     if maintenance_mode_enabled and request.path != url_for('maintenance') and not 'static' in request.path:
         return redirect(url_for('maintenance'))
-
-@login_manager.user_loader
-def load_user(userid):
-    if not userid:
-        return None
-    try:
-        userid = int(userid)
-    except ValueError:
-        app.logger.error('There was a ValueError in load_user.')
-        return None
-
-    return models.User.query.get(userid)
 
 def audit_log(f):
     @wraps(f)
@@ -208,7 +213,7 @@ def search_for_address_summaries(query):
 
 @app.route('/')
 def home():
-    if not current_user.is_anonymous():
+    if not current_user.is_anonymous:
         return redirect('/browse')
 
     return render_template('home.html', email=get_email_of_current_user())
@@ -217,81 +222,12 @@ def home():
 def page_not_found(e):
     return render_template('404.html', email=get_email_of_current_user())
 
-@app.route('/log-in', methods=['GET'])
-def login_page():
-    next = request.args.get('next')
-    return render_template('login.html', next=next, email=get_email_of_current_user())
-
-def fetch_authorization_row(email):
-    CLIENT_EMAIL = app.config['GOOGLE_CLIENT_EMAIL']
-    PRIVATE_KEY = app.config['GOOGLE_PRIVATE_KEY']
-
-    SCOPE = "https://spreadsheets.google.com/feeds/"
-
-    credentials = SignedJwtAssertionCredentials(CLIENT_EMAIL, PRIVATE_KEY, SCOPE)
-    token = OAuth2TokenFromCredentials(credentials)
-    client = SpreadsheetsClient()
-
-    token.authorize(client)
-
-    # Load worksheet with auth info
-    spreadsheet_id = app.config['GOOGLE_SPREADSHEET_ID']
-    worksheets = client.get_worksheets(spreadsheet_id)
-    worksheet = worksheets.entry[0]
-
-    # worksheet.id.text takes the form of a full url including the spreadsheet, while
-    # we only need the last part of that
-    id_parts = worksheet.id.text.split('/')
-    worksheet_id = id_parts[len(id_parts) - 1]
-
-    list_feed = client.get_list_feed(spreadsheet_id, worksheet_id)
-
-    rows = [row.to_dict() for row in list_feed.entry]
-
-    user_auth_row = None
-    for row in rows:
-        if row['email'] == email:
-            user_auth_row = row
-            break
-
-    return user_auth_row
-
-@app.route('/log-in', methods=['POST'])
-@audit_log
-def log_in():
-    posted = post('https://verifier.login.persona.org/verify',
-                  data=dict(assertion=request.form.get('assertion'),
-                            audience=app.config['BROWSERID_URL']))
-
-    response = posted.json()
-
-    if response.get('status', '') == 'okay':
-        email = response['email']
-        user_auth_row = fetch_authorization_row(email)
-
-        if not user_auth_row or user_auth_row['canviewsite'] != 'Y':
-            return 'Not authorized', 403
-
-        user = load_user_by_email(email)
-
-        if not user:
-            user = create_user(email, user_auth_row['name'])
-
-        user.name = user_auth_row['name']
-        user.can_view_fire_data = user_auth_row['canviewfiredata'] == 'Y'
-        db.session.commit()
-
-        login_user(user)
-        return 'OK'
-
-    return Response('Failed', status=400)
-
 @app.route('/maintenance')
 def maintenance():
     return render_template('maintenance.html')
 
 @app.route("/browse")
-@login_required
+@http_auth_required
 @audit_log
 def browse():
     date_range = int(request.args.get('date_range', 365))
@@ -321,7 +257,7 @@ def browse():
         sort_by=sort_by, sort_order=sort_order, email=get_email_of_current_user())
 
 @app.route("/search")
-@login_required
+@http_auth_required
 @audit_log
 def search():
     query = request.args.get('q', '')
@@ -331,14 +267,6 @@ def search():
 
     return render_template("search.html", summaries=summaries, email=get_email_of_current_user(),
                            search_query=query)
-
-
-@csrf.exempt
-@app.route('/log-out', methods=['POST'])
-def log_out():
-    logout_user()
-
-    return "OK"
 
 def create_user(email, name):
     # Check whether a record already exists for this user.
@@ -358,7 +286,7 @@ def load_user_by_email(email):
     return user
 
 def get_email_of_current_user(user=current_user):
-    if user.is_anonymous():
+    if user.is_anonymous:
         return None
 
     email = user.email
@@ -390,7 +318,7 @@ def deactivate_address(address):
     db.session.commit()
 
 @app.route("/address/<address>")
-@login_required
+@http_auth_required
 @audit_log
 def address(address):
     incidents = fetch_incidents_at_address(address)
@@ -419,7 +347,7 @@ def address(address):
     return render_template('address.html', **kwargs)
 
 @app.route("/address/<address>/comments", methods=['POST'])
-@login_required
+@http_auth_required
 @audit_log
 def post_comment(address):
     comment = request.form.get('content')
@@ -434,7 +362,7 @@ def post_comment(address):
     return redirect(url_for("address", address=address))
 
 @app.route("/address/<address>/activate", methods=["POST"])
-@login_required
+@http_auth_required
 def activate(address):
     try:
         activate_address(address.upper())
@@ -444,7 +372,7 @@ def activate(address):
         return 'already activated', 400
 
 @app.route("/address/<address>/deactivate", methods=["POST"])
-@login_required
+@http_auth_required
 def deactivate(address):
     deactivate_address(address.upper())
     db.session.commit()
@@ -452,7 +380,7 @@ def deactivate(address):
 
 
 @app.route("/audit_log")
-@login_required
+@http_auth_required
 @audit_log
 def view_audit_log():
     page = int(request.args.get('page', 1))
