@@ -1,30 +1,23 @@
-import datetime
 from datetime import timedelta
-import os
-import operator
-import pytz
-import logging
-import sqlalchemy.exc
-from logging.handlers import RotatingFileHandler
-
+from extensions import app, db, login_manager
 from flask import Flask, render_template, abort, request, Response, session, redirect, url_for, make_response
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.seasurf import SeaSurf
 from flask.ext.security import Security, SQLAlchemyUserDatastore, \
     login_user, logout_user, current_user, login_required
+from flask.ext.sqlalchemy import SQLAlchemy
 from flask_security import auth_token_required, http_auth_required
-from flask.ext.seasurf import SeaSurf
 from flask_sslify import SSLify
-import flask.ext.assets
-
 from functools import wraps
-
+from logging.handlers import RotatingFileHandler
 from requests import post
-
-from gdata.spreadsheets.client import SpreadsheetsClient
-from oauth2client.client import SignedJwtAssertionCredentials
-from gdata.gauth import OAuth2TokenFromCredentials
-
-from extensions import app, db, login_manager
+import datetime
+import flask.ext.assets
+import logging
+import models
+import operator
+import os
+import pytz
+import sqlalchemy.exc
 
 try:
     import clb_config
@@ -42,8 +35,6 @@ activated_table = db.Table('activated_addresses', meta,
 
 csrf = SeaSurf(app)
 
-import models
-
 # Setup Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
 security = Security(app, user_datastore)
@@ -54,20 +45,20 @@ assets.init_app(app)
 sslify = SSLify(app)
 
 # Create a user to test with
-@app.before_first_request
-def create_user(name='Alex Chavez', email='Alex.Chavez@longbeach.gov', password='hunter2'):
+# @app.before_first_request
+# def create_user(name='Alex Chavez', email='Alex.Chavez@longbeach.gov', password='hunter2'):
 
-    # Check whether a record already exists for this user.
-    db.create_all()
-    user = models.User.query.filter(models.User.email == email).first()
-    if user:
-        return
+#     # Check whether a record already exists for this user.
+#     db.create_all()
+#     user = models.User.query.filter(models.User.email == email).first()
+#     if user:
+#         return
 
-    # If no record exists, create the user.
-    db.create_all()
-    user_datastore.create_user(name=name, email=email, password=password, date_created=datetime.datetime.now(pytz.utc))
-    db.session.add(user)
-    db.session.commit()
+#     # If no record exists, create the user.
+#     db.create_all()
+#     user_datastore.create_user(name=name, email=email, password=password, date_created=datetime.datetime.now(pytz.utc))
+#     db.session.add(user)
+#     db.session.commit()
 
 @app.before_request
 def func():
