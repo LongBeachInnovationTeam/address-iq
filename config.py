@@ -11,19 +11,13 @@ class Config(object):
     SQLALCHEMY_BINDS = {
         'lbc_data': os.environ.get('DATA_DATABASE_URL', os.environ['DATABASE_URL'])
     }
-    BROWSERID_URL = os.environ['BROWSERID_URL']
-    BROWSERID_LOGIN_URL = '/log-in'
-    BROWSERID_LOGOUT_URL = '/log-out'
-
-    GOOGLE_PRIVATE_KEY = os.environ.get('GOOGLE_PRIVATE_KEY', '').replace("\\n", "\n")
-    GOOGLE_CLIENT_EMAIL = os.environ.get('GOOGLE_CLIENT_EMAIL', '')
-    GOOGLE_SPREADSHEET_ID = os.environ.get('GOOGLE_SPREADSHEET_ID', '')
 
     # Flask-Security
     SECURITY_PASSWORD_HASH = 'pbkdf2_sha512'
-    SECURITY_CONFIRMABLE = True
-    SECURITY_TRACKABLE = True
     SECURITY_PASSWORD_SALT = 'something_super_secret_change_in_production'
+    SECURITY_RECOVERABLE = True
+    SECURITY_TRACKABLE = True
+    SECURITY_POST_LOGIN_VIEW = "/browse"
 
 class ProductionConfig(Config):
     DEBUG = False
