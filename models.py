@@ -236,7 +236,7 @@ class AuditLogEntry(db.Model):
     resource = db.Column(db.String(100), primary_key=True)
     method = db.Column(db.String(10), primary_key=True)
     response_code = db.Column(db.String(3), primary_key=True)
-    user_id = db.Column(db.String(8), db.ForeignKey('users.id'), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), primary_key=True)
 
     user = db.relationship('User', primaryjoin='AuditLogEntry.user_id==User.id')
 

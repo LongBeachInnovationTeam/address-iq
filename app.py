@@ -45,20 +45,20 @@ assets.init_app(app)
 sslify = SSLify(app)
 
 # Create a user to test with
-# @app.before_first_request
-# def create_user(name='Alex Chavez', email='Alex.Chavez@longbeach.gov', password='hunter2'):
+@app.before_first_request
+def create_user(name='Alex Chavez', email='Alex.Chavez@longbeach.gov', password='hunter2'):
 
-#     # Check whether a record already exists for this user.
-#     db.create_all()
-#     user = models.User.query.filter(models.User.email == email).first()
-#     if user:
-#         return
+    # Check whether a record already exists for this user.
+    db.create_all()
+    user = models.User.query.filter(models.User.email == email).first()
+    if user:
+        return
 
-#     # If no record exists, create the user.
-#     db.create_all()
-#     user_datastore.create_user(name=name, email=email, password=password, date_created=datetime.datetime.now(pytz.utc))
-#     db.session.add(user)
-#     db.session.commit()
+    # If no record exists, create the user.
+    db.create_all()
+    user_datastore.create_user(name=name, email=email, password=password, date_created=datetime.datetime.now(pytz.utc))
+    # db.session.add(user)
+    db.session.commit()
 
 @app.before_request
 def func():
