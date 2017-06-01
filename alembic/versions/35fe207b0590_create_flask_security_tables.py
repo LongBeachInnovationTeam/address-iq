@@ -31,7 +31,6 @@ def upgrade():
     op.add_column('users', sa.Column('login_count', sa.Integer()))
 
 def downgrade():
-    op.execute("DROP TABLE IF EXISTS roles_users")
     op.drop_table('roles')
     op.drop_column('users', 'password')
     op.drop_column('users', 'active')

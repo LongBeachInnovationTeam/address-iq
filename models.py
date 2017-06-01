@@ -240,19 +240,7 @@ class AuditLogEntry(db.Model):
 
     user = db.relationship('User', primaryjoin='AuditLogEntry.user_id==User.id')
 
-# Many-to-Many association for User and Role models
-roles_users = db.Table('roles_users',
-        db.Column('user_id', db.Integer(), db.ForeignKey('users.id')),
-        db.Column('role_id', db.Integer(), db.ForeignKey('roles.id')))
-
-class Role(db.Model, RoleMixin):
-    __tablename__ = 'roles'
-
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    description = db.Column(db.String(255))
-
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -271,7 +259,7 @@ class User(db.Model):
     last_login_ip = db.Column(db.String(45))
     current_login_ip = db.Column(db.String(45))
     login_count = db.Column(db.Integer)
-    roles = db.relationship('Role', secondary=roles_users,
+    roles = db.relationship('Role', secondary='roles_users',
                             backref=db.backref('users', lazy='dynamic'))
 
     def is_authenticated(self):
@@ -285,6 +273,23 @@ class User(db.Model):
 
     def get_id(self):
         return unicode(self.id)
+
+    def has_role(self, role):
+        return role in self.roles
+
+class Role(db.Model, RoleMixin):
+    __tablename__ = 'roles'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
+
+class UserRoles(db.Model):
+    __tablename__ = 'roles_users'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
 
 class Action(db.Model):
     __tablename__ = 'actions'

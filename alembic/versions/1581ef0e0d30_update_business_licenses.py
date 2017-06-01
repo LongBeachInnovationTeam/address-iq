@@ -16,36 +16,36 @@ import sqlalchemy as sa
 
 def upgrade():
     op.rename_table('business_licenses', 'all_business_licenses')
-    op.alter_column('all_business_licenses', 
+    op.alter_column('all_business_licenses',
                     'name',
                     type_=sa.types.CHAR(length=200))
 
-    op.alter_column('all_business_licenses', 
+    op.alter_column('all_business_licenses',
                     'business_class',
                     type_=sa.types.CHAR(length=40))
-    op.alter_column('all_business_licenses', 
+    op.alter_column('all_business_licenses',
                     'business_service_description',
                     type_=sa.types.CHAR(length=100))
-    op.alter_column('all_business_licenses', 
+    op.alter_column('all_business_licenses',
                     'business_product',
                     type_=sa.types.CHAR(length=40))
-    op.alter_column('all_business_licenses', 
+    op.alter_column('all_business_licenses',
                     'business_address',
                     type_=sa.types.CHAR(length=200))
 
-    op.add_column('all_business_licenses', 
-            sa.Column('business_street_number', 
+    op.add_column('all_business_licenses',
+            sa.Column('business_street_number',
                     sa.types.CHAR(length=10)))
-    op.add_column('all_business_licenses', 
+    op.add_column('all_business_licenses',
             sa.Column('business_street_prefix',
                     sa.types.CHAR(length=30)))
-    op.add_column('all_business_licenses', 
+    op.add_column('all_business_licenses',
             sa.Column('business_street_name',
                     sa.types.CHAR(length=200)))
-    op.add_column('all_business_licenses', 
+    op.add_column('all_business_licenses',
             sa.Column('business_street_type',
                     sa.types.CHAR(length=20)))
-    op.add_column('all_business_licenses', 
+    op.add_column('all_business_licenses',
             sa.Column('business_street_suffix',
                     sa.types.CHAR(length=20)))
     op.alter_column('all_business_licenses',
@@ -55,29 +55,29 @@ def upgrade():
 
 def downgrade():
     op.rename_table('all_business_licenses', 'business_licenses')
-    op.alter_column('all_business_licenses', 
+    op.alter_column('business_licenses',
                     'name',
                     type_=sa.types.VARCHAR(length=200))
 
-    op.alter_column('all_business_licenses', 
+    op.alter_column('business_licenses',
                     'business_class',
                     type_=sa.types.VARCHAR(length=40))
-    op.alter_column('all_business_licenses', 
+    op.alter_column('business_licenses',
                     'business_service_description',
                     type_=sa.types.VARCHAR(length=100))
-    op.alter_column('all_business_licenses', 
+    op.alter_column('business_licenses',
                     'business_product',
                     type_=sa.types.VARCHAR(length=40))
-    op.alter_column('all_business_licenses', 
+    op.alter_column('business_licenses',
                     'business_address',
                     type_=sa.types.VARCHAR(length=200))
-    op.alter_column('all_business_licenses',
+    op.alter_column('business_licenses',
                     'business_zip',
                     type_=sa.types.VARCHAR(length=20))
 
-    op.drop_column('all_business_licenses', 'business_street_number')
-    op.drop_column('all_business_licenses', 'business_street_prefix')
-    op.drop_column('all_business_licenses', 'business_street_name')
-    op.drop_column('all_business_licenses', 'business_street_type')
-    op.drop_column('all_business_licenses', 'business_street_suffix')
-    op.drop_column('all_business_licenses', 'business_zip')
+    op.drop_column('business_licenses', 'business_street_number')
+    op.drop_column('business_licenses', 'business_street_prefix')
+    op.drop_column('business_licenses', 'business_street_name')
+    op.drop_column('business_licenses', 'business_street_type')
+    op.drop_column('business_licenses', 'business_street_suffix')
+    op.drop_column('business_licenses', 'business_zip')
