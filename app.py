@@ -3,9 +3,10 @@ from extensions import app, db, login_manager
 from flask import Flask, render_template, abort, request, Response, session, redirect, url_for, make_response
 from flask.ext.seasurf import SeaSurf
 from flask.ext.security import Security, SQLAlchemyUserDatastore, \
-    login_user, logout_user, current_user, login_required
+    login_user, logout_user, current_user, login_required, \
+    utils
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask_security import auth_token_required, http_auth_required
+from flask_security import auth_token_required, http_auth_required, roles_required, roles_accepted
 from flask_sslify import SSLify
 from functools import wraps
 from logging.handlers import RotatingFileHandler
@@ -44,21 +45,51 @@ assets.init_app(app)
 
 sslify = SSLify(app)
 
-# Create a user to test with
-@app.before_first_request
-def create_user(name='Alex Chavez', email='Alex.Chavez@longbeach.gov', password='hunter2'):
+# WARNING: UNCOMMENT CODE WITH FIRST RUN OF TESTING YOUR APP IN DEVELOPMENT ONLY!
+# Create users to test with
+# @app.before_first_request
+# def create_test_users():
+#
+#     # Create any database tables that don't exist yet
+#     db.create_all()
+#
+#     # Create the Roles "admin" and "end-user" -- unless they already exist
+#     user_datastore.find_or_create_role(name='admin', description='Administrator')
+#     user_datastore.find_or_create_role(name='approved-user', description='Accounts approved to access app.')
+#
+#     encrypted_password = utils.encrypt_password('hunter2')
+#
+#     # If no record exists, create an admin user.
+#     if not user_datastore.get_user('Alex.Chavez@longbeach.gov'):
+#         user_datastore.create_user(name='Alex Chavez',\
+#             email='Alex.Chavez@longbeach.gov',\
+#             password=encrypted_password,\
+#             date_created=datetime.datetime.now(pytz.utc))
+#
+#     # If no record exists, create an approved user.
+#     if not user_datastore.get_user('Mike.Will@longbeach.gov'):
+#         user_datastore.create_user(name='Mike Will',\
+#             email='Mike.Will@longbeach.gov',\
+#             password=encrypted_password,\
+#             date_created=datetime.datetime.now(pytz.utc))
+#
+#     # If no record exists, create a user that is waiting to be approved.
+#     if not user_datastore.get_user('Leeroy.Jenkins@longbeach.gov'):
+#         user_datastore.create_user(name='Leeroy Jenkins',\
+#             email='Leeroy.Jenkins@longbeach.gov',\
+#             password=encrypted_password,\
+#             date_created=datetime.datetime.now(pytz.utc))
+#
+#     # Commit any database changes; the User and Roles must exist before we can add a Role to the User
+#     db.session.commit()
+#
+#     # Give one User has the "end-user" role, while the other has the "admin" role. (This will have no effect if the
+#     # Users already have these Roles.) Again, commit any database changes.
+#     user_datastore.add_role_to_user('Alex.Chavez@longbeach.gov', 'admin')
+#     user_datastore.add_role_to_user('Alex.Chavez@longbeach.gov', 'approved-user')
+#     user_datastore.add_role_to_user('Mike.Will@longbeach.gov', 'approved-user')
+#     db.session.commit()
 
-    # Check whether a record already exists for this user.
-    db.create_all()
-    user = models.User.query.filter(models.User.email == email).first()
-    if user:
-        return
-
-    # If no record exists, create the user.
-    db.create_all()
-    user_datastore.create_user(name=name, email=email, password=password, date_created=datetime.datetime.now(pytz.utc))
-    # db.session.add(user)
-    db.session.commit()
 
 @app.before_request
 def func():
@@ -219,8 +250,10 @@ def maintenance():
 
 @app.route("/browse")
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 @audit_log
 def browse():
+
     date_range = int(request.args.get('date_range', 365))
     page = int(request.args.get('page', 1))
 
@@ -249,6 +282,7 @@ def browse():
 
 @app.route("/search")
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 @audit_log
 def search():
     query = request.args.get('q', '')
@@ -310,6 +344,7 @@ def deactivate_address(address):
 
 @app.route("/address/<address>")
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 @audit_log
 def address(address):
     incidents = fetch_incidents_at_address(address)
@@ -339,6 +374,7 @@ def address(address):
 
 @app.route("/address/<address>/comments", methods=['POST'])
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 @audit_log
 def post_comment(address):
     comment = request.form.get('content')
@@ -354,6 +390,7 @@ def post_comment(address):
 
 @app.route("/address/<address>/activate", methods=["POST"])
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 def activate(address):
     try:
         activate_address(address.upper())
@@ -364,6 +401,7 @@ def activate(address):
 
 @app.route("/address/<address>/deactivate", methods=["POST"])
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 def deactivate(address):
     deactivate_address(address.upper())
     db.session.commit()
@@ -372,6 +410,7 @@ def deactivate(address):
 
 @app.route("/audit_log")
 @http_auth_required
+@roles_accepted('admin', 'approved-user')
 @audit_log
 def view_audit_log():
     page = int(request.args.get('page', 1))
