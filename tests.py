@@ -39,12 +39,9 @@ class LoginTestCase(unittest.TestCase):
 
     def setUp(self):
         self.app = app.test_client()
-        # user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
-        # self.security = Security(self.app, user_datastore)
         db.create_all()
 
         # Create an admin user
-        # user_admin_role = models.Role(name='admin', description='Administrator')
         user_admin = models.User(name = 'Test User', \
             email = 'test@email.com', \
             password = 'hunter2', \
